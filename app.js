@@ -9,11 +9,12 @@ const storage = multer.diskStorage({
     destination: (req,file ,cb)=>{
         cb(null, "./uploads")
     },
-    filename: (req,res,cb)=>{
-        cb(null, req.file)
+    filename: (req,file,cb)=>{
+        cb(null, file.originalname)
     }
 })
-const upload = multer ({storage: storage}).single("avatar");
+const upload = multer({storage: storage}).single("avatar");
+ 
 app.set("view engine", "ejs");
 
 app.get('/',(req,res)=>{
@@ -22,9 +23,22 @@ app.get('/',(req,res)=>{
 
 app.post("/upload",(req,res)=>{
     upload(req,res,err =>{
-        console.log(req.file)
+        fs.readFile(`./uploads/${req.file.originalname}`,(err,data)=>{
+            if(err) return console.log("this is your error",err);
+
+            worker
+            .recognize(data, "eng", { tessjs_create_pdf: "1"})
+            .progress(progress =>{
+                // console.log(progress);
+            })
+            .then(result =>{
+                res.send(result.text);
+            })
+            .finally(()=> worker.terminate());
+        })
     })
 })
+
 
 
 const PORT = 5000 || process.env.PORT;
